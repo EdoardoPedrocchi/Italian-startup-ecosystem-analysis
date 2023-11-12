@@ -1,0 +1,108 @@
+
+#import the data#
+
+library(readxl)
+library(ggplot2)
+
+df<- read_excel("startup.xlsx")
+
+
+grafico_fonazione <- ggplot(df, aes(x = as.factor(fondazione))) +
+  geom_bar(stat = "count", fill = "steelblue") +
+  geom_line(stat = "count", color = "red", linewidth = 1, group = 1) +
+  labs(title = "Numero di Imprese Fondate per Anno",
+       x = "Anno",
+       y = "Numero di Imprese ") +
+  theme_minimal() +
+  theme(panel.grid = element_blank())  # Rimuovi la griglia
+
+
+grafico_fonazione
+
+# Visualizza il grafico senza griglia
+print(grafico_fonazione)
+
+
+
+
+# Crea un grafico a torta per la colonna "classe di produzione ultimo anno"
+ggplot(df, aes(x = "", fill = `classe di produzione ultimo anno`)) +
+  geom_bar(stat = "count", width = 1) +
+  coord_polar(theta = "y") +
+  labs(title = "Distribuzione delle Classi di Produzione (Ultimo Anno)",
+       fill = "Classe di Produzione") +
+  theme_minimal()
+
+
+
+
+
+#creo e stampo i grafici a torta#
+
+create_pie_chart <- function(variable_name) {
+  ggplot(df, aes(x = "", fill = .data[[variable_name]])) +
+    geom_bar(stat = "count", width = 1) +
+    coord_polar(theta = "y") +
+    labs(title = paste("Distribuzione di", variable_name),
+         fill = variable_name) +
+    theme_minimal()
+}
+
+# Creare grafici a parte per ciascuna variabile
+variables_to_plot <- c("classe di produzione ultimo anno", 
+                       "classe di addetti ultimo anno", 
+                       "impresa a vocazione sociale", 
+                       "classe di capitale", 
+                       "prevalenza femminile", 
+                       "prevalenza giovanile", 
+                       "settore",
+                       "attività",
+                       "prevalenza straniera")
+
+# stampa
+for (variable in variables_to_plot) {
+  plot_name <- paste("pie_chart_", gsub(" ", "_", variable), ".png", sep = "")
+  ggsave(plot_name, create_pie_chart(variable), width = 6, height = 6, units = "in")
+}
+
+#visualizza
+for (variable in variables_to_plot) {
+  print(create_pie_chart(variable))
+}
+
+#stampo il grafico degli anni di fonazone#
+ggsave("grafico_fonazione.png", plot = grafico_fonazione, width = 6, height = 4, units = "in")
+
+
+
+
+frequenze_attvità <- table(df$attività)
+
+# Crea una tabella con le frequenze
+tabella_frequenze_attività <- as.data.frame(frequenze_attvità)
+
+# Stampa la tabella
+print(tabella_frequenze_attività)
+
+
+
+
+# Ordina la tabella per frequenza in ordine decrescente
+tabella_ordinata <- tabella_frequenze_attività[order(-tabella_frequenze_attività$Freq), ]
+
+# Seleziona le prime 5 righe
+top_3_valori <- head(tabella_ordinata, 3)
+
+# Crea un grafico a barre
+grafico_a_barre_attività <- ggplot(top_3_valori, aes(x = reorder(Var1, Freq), y = Freq)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  labs(title = "top 5 attività svolte dalle startup",
+       x = "tipo di attività",
+       y = "numero di imprese") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Ruota le etichette sull'asse x per una migliore leggibilità
+
+# Visualizza il grafico
+print(grafico_a_barre_attività)
+
+ggsave("grafico_a_barre_attività.png", plot = grafico_a_barre_attività, width = 8, height = 6)
